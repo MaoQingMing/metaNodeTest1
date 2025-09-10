@@ -30,3 +30,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+/.idea/.gitignore
+/.idea/metaNodeTest.iml
+/.idea/modules.xml
+/.idea/vcs.xml
