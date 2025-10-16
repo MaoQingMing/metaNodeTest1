@@ -14,9 +14,12 @@ import { cn } from '../../utils/cn';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
+import useWagmi from '../../hooks/useWagmi'
+import { parseEther } from 'viem'
 
 const Home = () => {
   const stakeContract = useStakeContract('wagmi');
+  const {depositETH} = useWagmi()
   const { address, isConnected } = useAccount();
   const { rewardsData, poolData, canClaim, refresh } = useRewards();
   const [amount, setAmount] = useState('');
@@ -33,7 +36,7 @@ const Home = () => {
   });
 
   const handleStake = async () => {
-    if (!stakeContract || !data) return;
+    // if (!stakeContract || !data) return;
     if (!amount || parseFloat(amount) <= 0) {
       toast.error('Please enter a valid amount');
       return;
@@ -46,16 +49,19 @@ const Home = () => {
 
     try {
       setLoading(true);
-      const tx = await stakeContract.write.depositETH([], { value: parseUnits(amount, 18) });
-      const res = await waitForTransactionReceipt(data, { hash: tx });
-      console.log({ res })
-      if (res.status === 'success') {
-        toast.success('Stake successful!');
-        setAmount('');
-        setLoading(false);
-        refresh(); // 刷新奖励数据
-        return
-      }
+      console.log(
+          depositETH(parseEther(amount))
+      )
+      // const tx = await stakeContract.write.depositETH([], { value: parseUnits(amount, 18) });
+      // const res = await waitForTransactionReceipt(data, { hash: tx });
+      // console.log({ res })
+      // if (res.status === 'success') {
+      //   toast.success('Stake successful!');
+      //   setAmount('');
+      //   setLoading(false);
+      //   refresh(); // 刷新奖励数据
+      //   return
+      // }
       toast.error('Stake failed!')
     } catch (error) {
       setLoading(false);
