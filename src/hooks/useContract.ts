@@ -12,10 +12,10 @@ type UseContractOptions = {
 export function useContract<TAbi extends Abi>(
   addressOrAddressMap?: Address | { [chainId: number]: Address },
   abi?: TAbi,
-  options?: UseContractOptions,
+  type= 'viem'
 ) {
   const currentChainId = useChainId()
-  const chainId = options?.chainId || currentChainId
+  const chainId =currentChainId
   const { data: walletClient } = useWalletClient()
 
   return useMemo(() => {
@@ -25,12 +25,15 @@ export function useContract<TAbi extends Abi>(
     else address = addressOrAddressMap[chainId]
     if (!address) return null
     try {
-      return getContract({
-        abi,
-        address,
-        chainId,
-        signer: walletClient ?? undefined,
-      })
+      return getContract(
+          {
+          abi,
+          address,
+          chainId,
+          signer: walletClient ?? undefined,
+          type
+          }
+      )
     } catch (error) {
       console.error('Failed to get contract', error)
       return null
@@ -38,6 +41,6 @@ export function useContract<TAbi extends Abi>(
   }, [addressOrAddressMap, abi, chainId, walletClient])
 }
 
-export const useStakeContract = () => {
-  return useContract(StakeContractAddress, stakeAbi as Abi)
+export const useStakeContract = (type?:string) => {
+  return useContract(StakeContractAddress, stakeAbi as Abi, type)
 }

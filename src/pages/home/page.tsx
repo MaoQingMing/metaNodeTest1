@@ -16,7 +16,7 @@ import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
 
 const Home = () => {
-  const stakeContract = useStakeContract();
+  const stakeContract = useStakeContract('wagmi');
   const { address, isConnected } = useAccount();
   const { rewardsData, poolData, canClaim, refresh } = useRewards();
   const [amount, setAmount] = useState('');
@@ -210,7 +210,7 @@ const Home = () => {
                 </div>
               ) : (
                 <Button
-                  onClick={handleClaim}
+                  // onClick={handleClaim}
                   disabled={claimLoading || !canClaim}
                   loading={claimLoading}
                   fullWidth
