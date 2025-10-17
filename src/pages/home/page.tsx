@@ -18,8 +18,8 @@ import useWagmi from '../../hooks/useWagmi'
 import { parseEther } from 'viem'
 
 const Home = () => {
-  const stakeContract = useStakeContract('wagmi');
-  const {depositETH} = useWagmi()
+  const stakeContract = useStakeContract();
+  const {depositETH, claim} = useWagmi()
   const { address, isConnected } = useAccount();
   const { rewardsData, poolData, canClaim, refresh } = useRewards();
   const [amount, setAmount] = useState('');
@@ -36,7 +36,7 @@ const Home = () => {
   });
 
   const handleStake = async () => {
-    // if (!stakeContract || !data) return;
+    if (!data) return;
     if (!amount || parseFloat(amount) <= 0) {
       toast.error('Please enter a valid amount');
       return;
@@ -49,19 +49,14 @@ const Home = () => {
 
     try {
       setLoading(true);
-      console.log(
-          depositETH(parseEther(amount))
-      )
-      // const tx = await stakeContract.write.depositETH([], { value: parseUnits(amount, 18) });
-      // const res = await waitForTransactionReceipt(data, { hash: tx });
-      // console.log({ res })
-      // if (res.status === 'success') {
-      //   toast.success('Stake successful!');
-      //   setAmount('');
-      //   setLoading(false);
-      //   refresh(); // 刷新奖励数据
-      //   return
-      // }
+      const tx  = await depositETH(parseEther(amount));
+      const res = await waitForTransactionReceipt(data, { hash: tx });
+      if (res.status === 'success') {
+        toast.success('Claim successful!');
+        setClaimLoading(false);
+        refresh(); // 刷新奖励数据
+        return;
+      }
       toast.error('Stake failed!')
     } catch (error) {
       setLoading(false);
@@ -71,11 +66,11 @@ const Home = () => {
   };
 
   const handleClaim = async () => {
-    if (!stakeContract || !data) return;
+    if (!data) return;
     
     try {
       setClaimLoading(true);
-      const tx = await stakeContract.write.claim([Pid]);
+      const tx = await claim([Pid as unknown as bigint]);
       const res = await waitForTransactionReceipt(data, { hash: tx });
       
       if (res.status === 'success') {
@@ -216,8 +211,8 @@ const Home = () => {
                 </div>
               ) : (
                 <Button
-                  // onClick={handleClaim}
-                  disabled={claimLoading || !canClaim}
+                  onClick={handleClaim}
+                  disabled={claimLoading}
                   loading={claimLoading}
                   fullWidth
                   className="py-3 sm:py-5 text-lg sm:text-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"

@@ -10,6 +10,7 @@ import { waitForTransactionReceipt } from "viem/actions";
 import { toast } from "react-toastify";
 import { FiArrowUp, FiClock, FiInfo } from 'react-icons/fi';
 import { cn } from '../../utils/cn';
+import useWagmi from '../../hooks/useWagmi';
 
 export type UserStakeData = {
   staked: string;
@@ -25,6 +26,7 @@ const InitData: UserStakeData = {
 
 const Withdraw = () => {
   const stakeContract = useStakeContract();
+  const {stakingBalance, withdrawAmount} = useWagmi()
   const { address, isConnected } = useAccount();
   const [amount, setAmount] = useState('');
   const [unstakeLoading, setUnstakeLoading] = useState(false);
@@ -34,19 +36,21 @@ const Withdraw = () => {
 
   const isWithdrawable = useMemo(() => Number(userData.withdrawable) > 0 && isConnected, [userData, isConnected]);
 
-  const getUserData = useCallback(async () => {
-    if (!stakeContract || !address) return;
-    const staked = await stakeContract.read.stakingBalance([Pid, address]);
+  const getUserData = async () => {
+    if (!address) return;
+    const staked = await stakingBalance(Pid as unknown as bigint, address);
     // @ts-ignore
-    const [requestAmount, pendingWithdrawAmount] = await stakeContract.read.withdrawAmount([Pid, address]);
-    const ava = Number(formatUnits(pendingWithdrawAmount, 18));
-    const total = Number(formatUnits(requestAmount, 18));
-    setUserData({
-      staked: formatUnits(staked as bigint, 18),
-      withdrawPending: (total - ava).toFixed(4),
-      withdrawable: ava.toString()
-    });
-  }, [stakeContract, address]);
+    // const [requestAmount, pendingWithdrawAmount] = await withdrawAmount(Pid, address);
+    // const ava = Number(formatUnits(pendingWithdrawAmount, 18));
+    // const total = Number(formatUnits(requestAmount, 18));
+    // // setUserData({
+    // //   staked: formatUnits(staked as bigint, 18),
+    // //   withdrawPending: (total - ava).toFixed(4),
+    // //   withdrawable: ava.toString()
+    // // });
+    //
+    // console.log(staked, requestAmount, pendingWithdrawAmount)
+  };
 
   useEffect(() => {
     if (stakeContract && address) {
