@@ -26,39 +26,40 @@ const InitData: UserStakeData = {
 
 const Withdraw = () => {
   const stakeContract = useStakeContract();
-  const {stakingBalance, withdrawAmount} = useWagmi()
+  const {stakingBalance, withdrawAmount, unstake, withdraw} = useWagmi()
   const { address, isConnected } = useAccount();
   const [amount, setAmount] = useState('');
   const [unstakeLoading, setUnstakeLoading] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const { data } = useWalletClient();
   const [userData, setUserData] = useState<UserStakeData>(InitData);
+  // @ts-ignore
+  const {data: staked} = stakingBalance(Pid as unknown as bigint, address)
+  // @ts-ignore
+  const {data: amountData} = withdrawAmount(Pid, address)
 
   const isWithdrawable = useMemo(() => Number(userData.withdrawable) > 0 && isConnected, [userData, isConnected]);
 
   const getUserData = async () => {
-    if (!address) return;
-    const staked = await stakingBalance(Pid as unknown as bigint, address);
+    if (!address || !staked || !amountData) return;
     // @ts-ignore
-    // const [requestAmount, pendingWithdrawAmount] = await withdrawAmount(Pid, address);
-    // const ava = Number(formatUnits(pendingWithdrawAmount, 18));
-    // const total = Number(formatUnits(requestAmount, 18));
-    // // setUserData({
-    // //   staked: formatUnits(staked as bigint, 18),
-    // //   withdrawPending: (total - ava).toFixed(4),
-    // //   withdrawable: ava.toString()
-    // // });
-    //
-    // console.log(staked, requestAmount, pendingWithdrawAmount)
+    const [requestAmount, pendingWithdrawAmount] = amountData;
+    const ava = Number(formatUnits(pendingWithdrawAmount, 18));
+    const total = Number(formatUnits(requestAmount, 18));
+    setUserData({
+      staked: formatUnits(staked as bigint, 18),
+      withdrawPending: (total - ava).toFixed(4),
+      withdrawable: ava.toString()
+    });
   };
 
   useEffect(() => {
-    if (stakeContract && address) {
+    if (address && staked && amountData) {
       getUserData();
     }
-  }, [address, stakeContract, getUserData]);
+  }, [address, staked, amountData]);
 
-  const handleUnStake = useCallback(async () => {
+  const handleUnStake = async () => {
     if (!stakeContract || !data) return;
     if (!amount || parseFloat(amount) <= 0) {
       toast.error('Please enter a valid amount');
@@ -70,7 +71,7 @@ const Withdraw = () => {
     }
     try {
       setUnstakeLoading(true);
-      const tx = await stakeContract.write.unstake([Pid, parseUnits(amount, 18)]);
+      const tx = await unstake(Pid as unknown as bigint, parseUnits(amount, 18));
       console.log('stakeContract', stakeContract)
       console.log('Pid', Pid)
       await waitForTransactionReceipt(data, { hash: tx });
@@ -83,13 +84,13 @@ const Withdraw = () => {
       toast.error('Transaction failed. Please try again.');
       console.log(error, 'stake-error');
     }
-  }, [stakeContract, data, amount, userData.staked, getUserData]);
+  }
 
-  const handleWithdraw = useCallback(async () => {
+  const handleWithdraw = async () => {
     if (!stakeContract || !data) return;
     try {
       setWithdrawLoading(true);
-      const tx = await stakeContract.write.withdraw([Pid]);
+      const tx = await withdraw(Pid as unknown as bigint);
       await waitForTransactionReceipt(data, { hash: tx });
       toast.success('Withdraw successful!');
       setWithdrawLoading(false);
@@ -99,7 +100,7 @@ const Withdraw = () => {
       toast.error('Transaction failed. Please try again.');
       console.log(error, 'stake-error');
     }
-  }, [stakeContract, data, getUserData]);
+  }
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -221,7 +222,7 @@ const Withdraw = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleWithdraw}
-            disabled={!isWithdrawable || withdrawLoading}
+            disabled={withdrawLoading}
             className={cn(
               "btn-primary w-full flex items-center justify-center space-x-2",
               (!isWithdrawable || withdrawLoading) && "opacity-70 cursor-not-allowed"

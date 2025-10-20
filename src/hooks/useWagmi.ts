@@ -28,14 +28,13 @@ const useWagmi = () => {
             })
     }
     const stakingBalance = (_pid: bigint, address:`0x${string}`)=> {
-        const result =  useReadContract({
+        return useReadContract({
             account: walletClient?.account,
             address: StakeContractAddress, // ERC20 合约地址 (交易的 to)
             abi: stakeAbi,
             functionName: 'stakingBalance',
             args: [_pid,address], // 可选参数
         })
-        return result
     }
     const withdrawAmount = (_pid: bigint, address:`0x${string}`)=> {
         return useReadContract({
@@ -46,11 +45,35 @@ const useWagmi = () => {
             args: [_pid,address], // 可选参数
         })
     }
+    const unstake = (_pid: bigint, amount:bigint) => {
+        return writeContract(config,
+            {
+                account: walletClient?.account,
+                address: StakeContractAddress, // ERC20 合约地址 (交易的 to)
+                abi: stakeAbi,
+                functionName: 'unstake',
+                args: [_pid,amount],
+            }
+        ) 
+    }
+    const withdraw = (_pid: bigint) => {
+        return writeContract(config,
+            {
+                account: walletClient?.account,
+                address: StakeContractAddress, // ERC20 合约地址 (交易的 to)
+                abi: stakeAbi,
+                functionName: 'withdraw',
+                args: [_pid],
+            }
+        )
+    }
     return {
         depositETH,
         claim,
         stakingBalance,
-        withdrawAmount
+        withdrawAmount,
+        unstake,
+        withdraw,
     }
 }
 

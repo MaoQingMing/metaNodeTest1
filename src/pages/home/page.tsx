@@ -70,7 +70,7 @@ const Home = () => {
     
     try {
       setClaimLoading(true);
-      const tx = await claim([Pid as unknown as bigint]);
+      const tx = await claim(Pid as unknown as bigint);
       const res = await waitForTransactionReceipt(data, { hash: tx });
       
       if (res.status === 'success') {
@@ -149,7 +149,7 @@ const Home = () => {
               {!isConnected ? (
                 <div className="flex justify-center">
                   <div className="glow">
-                    <ConnectButton />
+                    <ConnectButton  />
                   </div>
                 </div>
               ) : (

@@ -78,7 +78,7 @@ const Header = () => {
 
           <div className="flex items-center gap-2 md:gap-4 mt-2 md:mt-0">
             <div className="glow min-w-[100px] sm:min-w-[120px]">
-              <ConnectButton />
+              <ConnectButton label={'链接钱包test'}/>
             </div>
             {/* Mobile menu button */}
             <button

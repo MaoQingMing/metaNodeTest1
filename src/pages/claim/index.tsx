@@ -12,20 +12,22 @@ import { FiGift, FiInfo, FiTrendingUp, FiClock, FiZap } from 'react-icons/fi';
 import { cn } from '../../utils/cn';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import useWagmi from '../../hooks/useWagmi';
 
 const Claim = () => {
   const stakeContract = useStakeContract();
+  const {claim} = useWagmi()
   const { address, isConnected } = useAccount();
   const { rewardsData, canClaim, refresh } = useRewards();
   const [claimLoading, setClaimLoading] = useState(false);
   const { data } = useWalletClient();
 
   const handleClaim = useCallback(async () => {
-    if (!stakeContract || !data) return;
+    if (!data) return;
     
     try {
       setClaimLoading(true);
-      const tx = await stakeContract.write.claim([Pid]);
+      const tx = await claim(Pid as unknown as bigint);
       console.log(tx, '===tx===');
       
       const res = await waitForTransactionReceipt(data, { hash: tx });

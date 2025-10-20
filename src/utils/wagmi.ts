@@ -1,22 +1,43 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { http } from 'viem';
+import { createConfig, http } from 'wagmi';
+import { sepolia } from 'wagmi/chains';
+import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import {
-  sepolia,
-} from 'wagmi/chains';
-// from https://cloud.walletconnect.com/
-const ProjectId = 'e3242412afd6123ce1dda1de23a8c016'
+  metaMaskWallet,
+  rainbowWallet,
+  walletConnectWallet,
+  coinbaseWallet,
+  injectedWallet
+} from '@rainbow-me/rainbowkit/wallets';
 
-export const config = getDefaultConfig({
-  appName: 'Meta Node Stake',
-  projectId: ProjectId,
-  chains: [
-    sepolia
-  ],
+const ProjectId = 'e3242412afd6123ce1dda1de23a8c016';
+
+// 配置钱包连接器
+const connectors = connectorsForWallets(
+    [
+      {
+        groupName: '自定义钱包321321321',
+        wallets: [
+          injectedWallet,
+          metaMaskWallet,
+          rainbowWallet,
+          coinbaseWallet,
+          walletConnectWallet,
+        ],
+      },
+    ],
+    {
+      appName: 'Meta Node Stake',
+      projectId: ProjectId,
+    }
+);
+
+export const config = createConfig({
+  chains: [sepolia],
+  connectors,
   transports: {
-    // 替换之前 不可用的 https://rpc.sepolia.org/
-    [sepolia.id]: http('https://sepolia.infura.io/v3/d8ed0bd1de8242d998a1405b6932ab33')
+    [sepolia.id]: http('https://sepolia.infura.io/v3/d8ed0bd1de8242d998a1405b6932ab33'),
   },
-  ssr: true,
+  ssr: true, // 如果你需要服务端渲染支持
 });
 
-export const defaultChainId: number = sepolia.id
+export const defaultChainId: number = sepolia.id;
