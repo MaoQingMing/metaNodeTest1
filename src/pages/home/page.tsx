@@ -16,10 +16,12 @@ import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
 import useWagmi from '../../hooks/useWagmi'
 import { parseEther } from 'viem'
+import useEthers from '../../hooks/useEthers';
 
 const Home = () => {
   const stakeContract = useStakeContract();
   const {depositETH, claim} = useWagmi()
+  const contract = useEthers()
   const { address, isConnected } = useAccount();
   const { rewardsData, poolData, canClaim, refresh } = useRewards();
   const [amount, setAmount] = useState('');
@@ -49,7 +51,16 @@ const Home = () => {
 
     try {
       setLoading(true);
-      const tx  = await depositETH(parseEther(amount));
+      // const tx  = await depositETH(parseEther(amount));
+      console.log(contract)
+      const tx = await contract.then((contract) => {
+        return contract.depositETH({
+          value: parseEther(amount)
+        });
+      }).catch((err) => {
+        console.log(err)
+      })
+
       const res = await waitForTransactionReceipt(data, { hash: tx });
       if (res.status === 'success') {
         toast.success('Claim successful!');
