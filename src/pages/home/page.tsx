@@ -52,7 +52,7 @@ const Home = () => {
     try {
       setLoading(true);
       // const tx  = await depositETH(parseEther(amount));
-      console.log(contract)
+      // console.log(contract)
       const tx = await contract.then((contract) => {
         return contract.depositETH({
           value: parseEther(amount)
@@ -63,8 +63,8 @@ const Home = () => {
 
       const res = await waitForTransactionReceipt(data, { hash: tx });
       if (res.status === 'success') {
-        toast.success('Claim successful!');
-        setClaimLoading(false);
+        toast.success('stake successful!');
+        setLoading(false);
         refresh(); // 刷新奖励数据
         return;
       }
