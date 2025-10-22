@@ -54,6 +54,7 @@ const Home = () => {
       // const tx  = await depositETH(parseEther(amount));
       // console.log(contract)
       const tx = await contract.then((contract) => {
+        if (!contract) return
         return contract.depositETH({
           value: parseEther(amount)
         });
