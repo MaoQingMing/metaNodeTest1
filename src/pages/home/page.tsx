@@ -17,11 +17,14 @@ import { Card } from '../../components/ui/Card';
 import useWagmi from '../../hooks/useWagmi'
 import { parseEther } from 'viem'
 import useEthers from '../../hooks/useEthers';
+import { useEthersSigner } from '../../hooks/useEthersSigner';
+import { evmServices } from '../../services';
 
 const Home = () => {
   const stakeContract = useStakeContract();
   const {depositETH, claim} = useWagmi()
-  const contract = useEthers()
+  // const contract = useEthers()
+  const signer = useEthersSigner()
   const { address, isConnected } = useAccount();
   const { rewardsData, poolData, canClaim, refresh } = useRewards();
   const [amount, setAmount] = useState('');
@@ -51,25 +54,32 @@ const Home = () => {
 
     try {
       setLoading(true);
-      // const tx  = await depositETH(parseEther(amount));
+      // const tx  = await c(parseEther(amount));
       // console.log(contract)
-      const tx = await contract.then((contract) => {
-        if (!contract) return
-        return contract.depositETH({
-          value: parseEther(amount)
-        });
-      }).catch((err) => {
-        console.log(err)
-      })
+      // const tx = await contract.then((contract) => {
+      //   if (!contract) return
+      //   return contract.depositETH({
+      //     value: parseEther(amount)
+      //   });
+      // }).catch((err) => {
+      //   console.log(err)
+      // })
 
-      const res = await waitForTransactionReceipt(data, { hash: tx });
-      if (res.status === 'success') {
-        toast.success('stake successful!');
-        setLoading(false);
-        refresh(); // 刷新奖励数据
-        return;
+      // const res = await waitForTransactionReceipt(data, { hash: tx });
+      // if (res.status === 'success') {
+      //   toast.success('stake successful!');
+      //   setLoading(false);
+      //   refresh(); // 刷新奖励数据
+      //   return;
+      // }
+      // toast.error('Stake failed!')
+
+      if (!signer) return
+      const res = await evmServices.stakeContract.depositETH(signer, amount)
+      if (res){
+        toast.success('stake success!')
       }
-      toast.error('Stake failed!')
+      setLoading(false)
     } catch (error) {
       setLoading(false);
       toast.error('Transaction failed. Please try again.');

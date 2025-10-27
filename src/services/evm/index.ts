@@ -1,0 +1,1 @@
+export * as stakeContract from './StakeContract'
