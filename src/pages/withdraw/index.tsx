@@ -11,6 +11,8 @@ import { toast } from "react-toastify";
 import { FiArrowUp, FiClock, FiInfo } from 'react-icons/fi';
 import { cn } from '../../utils/cn';
 import useWagmi from '../../hooks/useWagmi';
+import { evmServices } from '../../services';
+import { useEthersProvider } from '../../hooks/useEthersProvider';
 
 export type UserStakeData = {
   staked: string;
@@ -27,22 +29,25 @@ const InitData: UserStakeData = {
 const Withdraw = () => {
   const stakeContract = useStakeContract();
   const {stakingBalance, withdrawAmount, unstake, withdraw} = useWagmi()
+  const provider = useEthersProvider()
   const { address, isConnected } = useAccount();
   const [amount, setAmount] = useState('');
   const [unstakeLoading, setUnstakeLoading] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const { data } = useWalletClient();
   const [userData, setUserData] = useState<UserStakeData>(InitData);
-  // @ts-ignore
-  const {data: staked} = stakingBalance(Pid as unknown as bigint, address)
-  // @ts-ignore
-  const {data: amountData} = withdrawAmount(Pid, address)
+  // // @ts-ignore
+  // const {data: staked} = stakingBalance(Pid as unknown as bigint, address)
+  // // @ts-ignore
+  // const {data: amountData} = withdrawAmount(Pid, address)
 
   const isWithdrawable = useMemo(() => Number(userData.withdrawable) > 0 && isConnected, [userData, isConnected]);
 
   const getUserData = async () => {
-    if (!address || !staked || !amountData) return;
-    // @ts-ignore
+    if (!address || !provider) return;
+
+    const staked = await evmServices.stakeContract.stakingBalance(provider,Pid as unknown as bigint, address)
+    const amountData = await evmServices.stakeContract.withdrawAmount(provider,Pid as unknown as bigint, address)
     const [requestAmount, pendingWithdrawAmount] = amountData;
     const ava = Number(formatUnits(pendingWithdrawAmount, 18));
     const total = Number(formatUnits(requestAmount, 18));
@@ -54,10 +59,10 @@ const Withdraw = () => {
   };
 
   useEffect(() => {
-    if (address && staked && amountData) {
+    if (address && provider) {
       getUserData();
     }
-  }, [address, staked, amountData]);
+  }, [address, provider]);
 
   const handleUnStake = async () => {
     if (!stakeContract || !data) return;
